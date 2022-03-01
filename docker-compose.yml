@@ -1,0 +1,49 @@
+version: '3.3'
+
+services:
+
+  registry:
+    image: registry:2.8.0
+    environment:
+      DB_VENDOR: postgres
+      DB_ADDR: postgres-db
+      DB_DATABASE: keycloak
+      DB_USER: keycloak
+      DB_PASSWORD: keycloak
+      DB_SCHEMA: public
+      REGISTRY_STORAGE: 's3'
+      REGISTRY_STORAGE_S3_ACCESSKEY: ${REGISTRY_STORAGE_S3_ACCESSKEY}
+      REGISTRY_STORAGE_S3_SECRETKEY: ${REGISTRY_STORAGE_S3_SECRETKEY}
+      REGISTRY_STORAGE_S3_BUCKET: ${REGISTRY_STORAGE_S3_BUCKET}
+      REGISTRY_STORAGE_S3_REGION: ${REGISTRY_STORAGE_S3_REGION}
+      REGISTRY_STORAGE_S3_V4AUTH: 'true'
+      REGISTRY_HTTP_TLS_CERTIFICATE: /opt/certs/localhost.crt
+      REGISTRY_HTTP_TLS_KEY: /opt/certs/localhost.key
+      REGISTRY_AUTH_TOKEN_REALM: http://localhost:8080/auth/realms/Docker-Registry/protocol/docker-v2/auth
+      REGISTRY_AUTH_TOKEN_SERVICE: test-docker-registry
+      REGISTRY_AUTH_TOKEN_ISSUER: http://localhost:8080/auth/realms/Docker-Registry
+      REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE: /opt/certs/localhost_trust_chain.pem
+    volumes:
+      - ./certs:/opt/certs:z
+    ports:
+      - 5000:5000
+    depends_on:
+      - keycloak
+
+  keycloak:
+    build:
+      context: .
+    command:
+      - "-b 0.0.0.0 -Djboss.http.port=8080 -Dkeycloak.profile.feature.docker=enabled"
+    ports:
+      - 8080:8080
+    depends_on:
+      - postgres-db
+
+  postgres-db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
