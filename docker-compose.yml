@@ -5,12 +5,6 @@ services:
   registry:
     image: registry:2.8.0
     environment:
-      DB_VENDOR: postgres
-      DB_ADDR: postgres-db
-      DB_DATABASE: keycloak
-      DB_USER: keycloak
-      DB_PASSWORD: keycloak
-      DB_SCHEMA: public
       REGISTRY_STORAGE: 's3'
       REGISTRY_STORAGE_S3_ACCESSKEY: ${REGISTRY_STORAGE_S3_ACCESSKEY}
       REGISTRY_STORAGE_S3_SECRETKEY: ${REGISTRY_STORAGE_S3_SECRETKEY}
@@ -33,6 +27,13 @@ services:
   keycloak:
     build:
       context: .
+    environment:
+      DB_VENDOR: postgres
+      DB_ADDR: postgres-db
+      DB_DATABASE: keycloak
+      DB_USER: keycloak
+      DB_PASSWORD: keycloak
+      DB_SCHEMA: public
     command:
       - "-b 0.0.0.0 -Djboss.http.port=8080 -Dkeycloak.profile.feature.docker=enabled"
     ports:
